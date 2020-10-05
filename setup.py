@@ -5,5 +5,5 @@ setup(
     version="0.0.1",
     description="Simple API that handle ESP32 CAM requests",
     packages=find_packages(),
-    install_requires=["aiohttp==3.6.2",],
+    install_requires=["aiohttp==3.6.2", "Pillow==7.2.0"],
 )
