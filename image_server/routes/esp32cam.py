@@ -13,8 +13,8 @@ from PIL import Image
 from uuid import uuid4
 
 from image_server.models.object_detection import ObjectDetection
+from image_server.models.firebase_token import FirebaseToken
 from object_detection.utils import visualization_utils as vis_util
-from image_server import TMP_FOLDER
 from image_server.utils.json import dumps
 from image_server.utils.s3_manager import S3Manager
 from image_server.utils.firebase import Firebase
@@ -22,12 +22,43 @@ from image_server.utils.firebase import Firebase
 routes = web.RouteTableDef()
 logger = logging.getLogger(__name__)
 
-routes.static("/image", os.getcwd() + "/tmp")
-
 
 @routes.get("/")
 async def main(req: web.Request):
     return web.Response(text="Image Server is running!")
+
+
+@routes.post("/mobile/register_firebase_token")
+async def register_firebase_token(req: web.Request):
+    if not req.has_body:
+        return web.HTTPBadRequest(text="Invalid body")
+
+    try:
+        body = await req.json()
+    except BaseException:
+        msg = "Error decoding json"
+
+        logger.exception(msg, exc_info=True)
+        return web.HTTPInternalServerError(text=msg)
+
+    if "device_id" not in body or "token" not in body:
+        return web.HTTPBadRequest(text="Invalid body")
+
+    try:
+        device = await FirebaseToken.filter(device_id=body["device_id"]).first()
+
+        if device:
+            device.token = body["token"]
+            await device.save()
+        else:
+            await FirebaseToken.create(**body)
+    except BaseException:
+        msg = "Error creating or updating token for device"
+
+        logger.exception(msg, exc_info=True)
+        return web.HTTPInternalServerError(text=msg)
+
+    return web.Response(status=200)
 
 
 @routes.get("/esp32cam/detections")

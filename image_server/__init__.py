@@ -11,13 +11,7 @@ from image_server.models.object_detection import ObjectDetection
 from image_server.utils.firebase import Firebase
 
 
-TMP_FOLDER = "tmp"
 PATH_TO_LABELS = "tf/research/object_detection/data/mscoco_label_map.pbtxt"
-
-
-def create_tmp_folder() -> None:
-    if TMP_FOLDER not in os.listdir():
-        os.mkdir(TMP_FOLDER)
 
 
 def load_model_in_app(app) -> None:
@@ -47,7 +41,14 @@ async def init_database(app: Optional[Application]) -> None:
             "connections": {
                 "default": f"mysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
             },
-            "apps": {"models": {"models": ["image_server.models.object_detection"]}},
+            "apps": {
+                "models": {
+                    "models": [
+                        "image_server.models.object_detection",
+                        "image_server.models.firebase_token",
+                    ]
+                }
+            },
         }
     )
     await Tortoise.generate_schemas()
