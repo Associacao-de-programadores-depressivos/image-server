@@ -2,6 +2,8 @@ import os
 import logging
 import firebase_admin
 
+from typing import List
+
 from firebase_admin import messaging
 from firebase_admin import credentials
 
@@ -16,7 +18,9 @@ class Firebase:
         cred = credentials.Certificate(os.environ["GOOGLE_SERVICE_ACCOUNT_PATH"])
         self._firebase = firebase_admin.initialize_app(cred)
 
-    def send_detection_notification(self, detection: ObjectDetection, token: str):
+    def send_detection_notification(
+        self, detection: ObjectDetection, tokens: List[str]
+    ):
         day_date = detection.created_date.strftime("%d/%m/%Y")
         hour_date = detection.created_date.strftime("%H:%M:%S")
 
@@ -34,7 +38,7 @@ class Firebase:
             notification=android_notification,
         )
 
-        message = messaging.Message(
+        message = messaging.MulticastMessage(
             data={
                 "id": str(detection.id),
                 "raw_image_url": str(detection.raw_image_url),
@@ -45,7 +49,7 @@ class Firebase:
             },
             notification=notification,
             android=android_config,
-            token=token,
+            tokens=tokens,
         )
 
-        messaging.send(message)
+        messaging.send_multicast(message)
