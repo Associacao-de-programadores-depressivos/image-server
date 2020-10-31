@@ -96,7 +96,6 @@ async def image(req: web.Request):
             img_content = image.file.read()
             buffer = BytesIO(img_content)
             np_img = np.array(Image.open(buffer))
-            s3.send_image_to_storage(img_content, file_name)
 
             detections = ObjectDetection.run_inference_for_single_image(
                 req.app["tf_model"], np_img
@@ -109,15 +108,21 @@ async def image(req: web.Request):
 
                 for i, _class in enumerate(classes):
                     if detections_limit > 0:
-                        response["detections"].append(
-                            {
-                                "object": category_index[_class]["name"],
-                                "score": scores[i],
-                            }
-                        )
-                        detections_limit -= 1
+                        if category_index[_class]["name"] == "person":
+                            response["detections"].append(
+                                {
+                                    "object": category_index[_class]["name"],
+                                    "score": scores[i],
+                                }
+                            )
+                            detections_limit -= 1
                     else:
                         break
+
+                if not response["detections"]:
+                    return web.Response(status=200)
+
+                s3.send_image_to_storage(img_content, file_name)
 
                 vis_util.visualize_boxes_and_labels_on_image_array(
                     np_img,
@@ -145,10 +150,11 @@ async def image(req: web.Request):
                     detections=response,
                 )
 
-                # @todo: fetch token from database
+                tokens = await FirebaseToken.all().values_list("token", flat=True)
+
                 firebase.send_detection_notification(
                     detection,
-                    "token",
+                    tokens,
                 )
 
             return web.Response(status=200)
