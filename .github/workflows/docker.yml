@@ -1,0 +1,49 @@
+name: Docker CI
+
+env:
+  IMAGE_NAME: imageserver
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  GOOGLE_SERVICE_ACCOUNT_PATH: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_PATH }}
+  STORAGE_BUCKET_NAME: ${{ secrets.STORAGE_BUCKET_NAME }}
+  STORAGE_URL: ${{ secrets.STORAGE_URL }}
+  DB_HOST: ${{ secrets.DB_HOST }}
+  DB_PORT: ${{ secrets.DB_PORT }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_NAME: ${{ secrets.DB_NAME }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    # Build
+    - name: Build image
+      run: docker build --no-cache -t "$IMAGE_NAME" --build-arg AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" 
+        --build-arg AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" --build-arg GOOGLE_SERVICE_ACCOUNT_PATH="$GOOGLE_SERVICE_ACCOUNT_PATH" 
+        --build-arg STORAGE_BUCKET_NAME="$STORAGE_BUCKET_NAME" --build-arg STORAGE_URL="$STORAGE_URL" --build-arg DB_HOST="$DB_HOST"
+        --build-arg DB_PORT="$DB_PORT" --build-arg DB_USER="$DB_USER" --build-arg DB_NAME="$DB_NAME" --build-arg DB_PASSWORD="$DB_PASSWORD" .
+    # Auth
+    - name: Log into registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+    # Push
+    - name: Push image
+      run: |
+        IMAGE_ID=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME
+        # Change all uppercase to lowercase
+        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        # Strip git ref prefix from version
+        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+        # Strip "v" prefix from tag name
+        [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+        # Use Docker `latest` tag convention
+        [ "$VERSION" == "master" ] && VERSION=latest
+        echo IMAGE_ID=$IMAGE_ID
+        echo VERSION=$VERSION
+        docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+        docker push $IMAGE_ID:$VERSION
