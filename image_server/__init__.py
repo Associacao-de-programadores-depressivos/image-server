@@ -11,7 +11,7 @@ from image_server.models.object_detection import ObjectDetection
 from image_server.utils.firebase import Firebase
 
 
-PATH_TO_LABELS = "tf/research/object_detection/data/mscoco_label_map.pbtxt"
+PATH_TO_LABELS = "tf/object_detection/data/mscoco_label_map.pbtxt"
 
 
 def load_model_in_app(app) -> None:
