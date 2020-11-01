@@ -26,10 +26,10 @@ jobs:
     # Build
     - name: Build image
       run: docker build --no-cache -t "$IMAGE_NAME" --build-arg AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" 
-      --build-arg AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" --build-arg GOOGLE_SERVICE_ACCOUNT_PATH="$GOOGLE_SERVICE_ACCOUNT_PATH" 
-      --build-arg STORAGE_BUCKET_NAME="$STORAGE_BUCKET_NAME" --build-arg STORAGE_URL="$STORAGE_URL" --build-arg DB_HOST="$DB_HOST" 
-      --build-arg DB_PORT="$DB_PORT" --build-arg DB_USER="$DB_USER" --build-arg DB_NAME="$DB_NAME" --build-arg DB_PASSWORD="$DB_PASSWORD" 
-      --build-arg GOOGLE_SERVICE_ACCOUNT_CRED="$GOOGLE_SERVICE_ACCOUNT_CRED" .
+        --build-arg AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" --build-arg GOOGLE_SERVICE_ACCOUNT_PATH="$GOOGLE_SERVICE_ACCOUNT_PATH" 
+        --build-arg STORAGE_BUCKET_NAME="$STORAGE_BUCKET_NAME" --build-arg STORAGE_URL="$STORAGE_URL" --build-arg DB_HOST="$DB_HOST"
+        --build-arg DB_PORT="$DB_PORT" --build-arg DB_USER="$DB_USER" --build-arg DB_NAME="$DB_NAME" --build-arg DB_PASSWORD="$DB_PASSWORD"
+        --build-arg GOOGLE_SERVICE_ACCOUNT_CRED="$GOOGLE_SERVICE_ACCOUNT_CRED" .
     # Auth
     - name: Log into registry
       run: echo "${{ secrets.PACKAGE_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
