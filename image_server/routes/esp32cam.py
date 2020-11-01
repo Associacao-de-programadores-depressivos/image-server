@@ -28,6 +28,25 @@ async def main(req: web.Request):
     return web.Response(text="Image Server is running!")
 
 
+@routes.get("/web/current_firebase_token")
+async def get_registered_token(req: web.Request):
+    token = req.match_info["token"]
+
+    if not token:
+        return web.HTTPBadRequest(text="Request without token")
+
+    try:
+        firebase_token = await FirebaseToken.filter(token=token).first()
+        return web.json_response(
+            {"device_id": firebase_token.device_id, "token": firebase_token.token},
+            status=200,
+        )
+    except BaseException:
+        msg = "Unexpected error occurred"
+        logger.exception(msg, exc_info=True)
+        return web.HTTPInternalServerError(text=msg)
+
+
 @routes.post("/mobile/register_firebase_token")
 async def register_firebase_token(req: web.Request):
     if not req.has_body:
