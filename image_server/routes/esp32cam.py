@@ -28,7 +28,7 @@ async def main(req: web.Request):
     return web.Response(text="Image Server is running!")
 
 
-@routes.get("/web/current_firebase_token")
+@routes.get("/web/current_firebase_token/{token}")
 async def get_registered_token(req: web.Request):
     token = req.match_info["token"]
 
@@ -37,6 +37,10 @@ async def get_registered_token(req: web.Request):
 
     try:
         firebase_token = await FirebaseToken.filter(token=token).first()
+
+        if not firebase_token:
+            return web.HTTPNotFound()
+
         return web.json_response(
             {"device_id": firebase_token.device_id, "token": firebase_token.token},
             status=200,
