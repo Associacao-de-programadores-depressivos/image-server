@@ -1,1 +1,1 @@
-CREATE DATABASE smart_eye;
+CREATE DATABASE IF NOT EXISTS smart_eye;

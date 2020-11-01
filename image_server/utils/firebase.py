@@ -15,8 +15,13 @@ logger = logging.getLogger(__name__)
 
 class Firebase:
     def __init__(self):
+        self.get_cred_from_environ()
         cred = credentials.Certificate(os.environ["GOOGLE_SERVICE_ACCOUNT_PATH"])
         self._firebase = firebase_admin.initialize_app(cred)
+
+    def get_cred_from_environ(self):
+        with open(os.environ["GOOGLE_SERVICE_ACCOUNT_PATH"], "w") as f:
+            f.write(os.environ["GOOGLE_SERVICE_ACCOUNT_CRED"])
 
     def send_detection_notification(
         self, detection: ObjectDetection, tokens: List[str]
