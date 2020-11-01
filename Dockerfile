@@ -35,8 +35,6 @@ ENV DB_PASSWORD=$DB_PASSWORD
 ARG DB_NAME="smart_eye"
 ENV DB_NAME=$DB_NAME
 
-RUN echo "$GOOGLE_SERVICE_ACCOUNT_CRED" > "$GOOGLE_SERVICE_ACCOUNT_PATH"
-
 RUN apt-get update
 
 RUN apt-get install -y protobuf-compiler
@@ -50,5 +48,7 @@ RUN protoc object_detection/protos/*.proto --python_out=.
 RUN python setup.py install
 
 WORKDIR /usr/src/app
+
+RUN echo "$GOOGLE_SERVICE_ACCOUNT_CRED" > "$GOOGLE_SERVICE_ACCOUNT_PATH"
 
 ENTRYPOINT [ "./run.sh" ]
