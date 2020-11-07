@@ -3,6 +3,7 @@ import logging
 import firebase_admin
 
 from typing import List
+from datetime import timedelta
 
 from firebase_admin import messaging
 from firebase_admin import credentials
@@ -26,8 +27,9 @@ class Firebase:
     def send_detection_notification(
         self, detection: ObjectDetection, tokens: List[str]
     ):
-        day_date = detection.created_date.strftime("%d/%m/%Y")
-        hour_date = detection.created_date.strftime("%H:%M:%S")
+        brazil_timezone = detection.created_date - timedelta(hours=3)
+        day_date = brazil_timezone.strftime("%d/%m/%Y")
+        hour_date = brazil_timezone.strftime("%H:%M:%S")
 
         notification = messaging.Notification(
             "Nova detecção",
@@ -48,9 +50,8 @@ class Firebase:
                 "id": str(detection.id),
                 "raw_image_url": str(detection.raw_image_url),
                 "boundary_box_image_url": str(detection.boundary_box_image_url),
-                "created_date": str(detection.created_date),
+                "created_date": str(brazil_timezone),
                 "click_action": "FLUTTER_NOTIFICATION_CLICK",
-                # "detections": dumps(detection.detections),
             },
             notification=notification,
             android=android_config,

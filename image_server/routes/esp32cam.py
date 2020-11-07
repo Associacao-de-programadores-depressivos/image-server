@@ -130,8 +130,11 @@ async def image(req: web.Request):
                 scores = detections["detection_scores"].tolist()
 
                 for i, _class in enumerate(classes):
+                    object_detected = category_index[_class]["name"]
+                    confidence = scores[i] * 100
+
                     if detections_limit > 0:
-                        if category_index[_class]["name"] == "person":
+                        if object_detected == "person" and confidence > 50:
                             response["detections"].append(
                                 {
                                     "object": category_index[_class]["name"],
@@ -155,7 +158,7 @@ async def image(req: web.Request):
                     category_index,
                     instance_masks=detections.get("detection_masks_reframed", None),
                     use_normalized_coordinates=True,
-                    line_thickness=8,
+                    line_thickness=6,
                 )
 
                 boundary_box_file_name = "boundary_box/" + file_name
